@@ -1,0 +1,50 @@
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.stem import WordNetLemmatizer
+import gensim
+from gensim import corpora
+import random
+
+# Download NLTK data files (only need to do this once)
+#nltk.download('punkt')
+#nltk.download('stopwords')
+#nltk.download('wordnet')
+
+random.seed(8)
+def preprocess_text(text):
+    # Tokenize into words
+    words = word_tokenize(text.lower())
+    
+    # Remove stop words
+    stop_words = set(stopwords.words('english'))
+    words = [word for word in words if word.isalnum() and word not in stop_words]
+    
+    # Lemmatize words
+    lemmatizer = WordNetLemmatizer()
+    words = [lemmatizer.lemmatize(word) for word in words]
+    
+    return words
+
+def lda_analysis(text, num_topics=3):
+    # Preprocess text
+    processed_text = preprocess_text(text)
+    
+    # Create dictionary and corpus
+    dictionary = corpora.Dictionary([processed_text])
+    corpus = [dictionary.doc2bow(processed_text)]
+    
+    # Create LDA model
+    lda_model = gensim.models.ldamodel.LdaModel(corpus, num_topics=num_topics, id2word=dictionary, passes=15, random_state = 8)
+    
+    # Get topics
+    topics = lda_model.print_topics(num_words=3)
+    return topics
+
+# Example usage
+passage = """
+dream. His face — whose bronzed hues and bold features are strongly defined against the soft satin of the pillow which supports his head— is turned to the light, and you discover that Brother Caleb is sleeping with his eyes wide open and teeth set firmly together. Brother Caleb's face, with sunken cheeks, wide mouth and thin lips, forehead widening over the brows, and eyes bulging from their lids, does not present a pleasant picture at any time, but now, agitated by the terrors of a dream, and mocked by the very contrast of the silken pillow and velvet curtain, it is as hideous as the phantom of a nightmare. And yet he is sleeping there, the owner of the splendid mansion, like an unsightly kernel, within a rich, luxurious shell. He is so very, very rich. A bachelor, too, with no care of wife or child upon his soul. For him, a thousand, and ten thousand slaves, are waiting ever— not slaves with black faces, and owned by the life-time merely — but slaves of all hues and races, whose services he may purchase with his pieces of gold, and his slips of bank note paper. There is something grand in the idea. Here sleeps a Rich Man who has no care, save that involved in the legal enjoyment of his appetites. His money — how gained, where acquired, is not your business — his money, is but the embodied toil of some ten thousand slaves; the work of ten thousand common people, petrified into bank notes and brick walls. This money would make ten thousand poor men happy. This money would give educa tion to twenty thousand poor men's children This money, properly applied, would deprive the penitentiary and the gallows of many a victim, and very likely turn every victim into an honest man. But away with thoughts like these. Who talks of depriving Brother Caleb of his — PROPERTY? Property, however won, is defended by Law, and sanctified by Religion. Whatever robbery Property may choose to commit, it is your part to remain silent. But let any ragged wretch, pilfer only one of Property's bank notes, and you shall see, forth with, that Property is soundly backed by Judge and Penitentiary. One day I saw a crowd of meanly dressed women, holding children by their hands, go sadly up the marble steps of a Bank. That bank had failed, and these women and children were by its failure, deprived of the very means of life. There was no law for the woman and the child; there was no Judge, bold enough to try these robbers of the Bank. Another day, I heard, that some thief — or band of thieves — had stolen seventy thousand dollars, from the President of a bank. At once the whole community was in uproar. The press rung out, the terrible theft, from Maine to the Rio Grande. Judges and juries were ready to try the thieves, and Courts sat week
+"""
+
+topics = lda_analysis(passage)
+print(f"Topics: {topics}")
